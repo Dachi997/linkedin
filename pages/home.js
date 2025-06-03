@@ -9,6 +9,9 @@ import Head from "next/head";
 import { getProviders, signIn } from "next-auth/react";
 
 const Home = ({ providers = {} }) => {
+  // Defensive check: if providers is null or empty object, don't crash
+  const providerList = providers ? Object.values(providers) : [];
+
   return (
     <div className="space-y-10">
       <Head>
@@ -38,16 +41,17 @@ const Home = ({ providers = {} }) => {
           </div>
 
           {/* Google Sign-in Button */}
-          {Object.values(providers).map((provider) => (
-            <div key={provider.name} className="pl-4">
-              <button
-                onClick={() => signIn(provider.id, { callbackUrl: "/" })}
-                className="text-blue-700 font-semibold rounded-full border border-blue-700 px-5 py-1.5 hover:bg-blue-50"
-              >
-                Sign In with {provider.name}
-              </button>
-            </div>
-          ))}
+          {providerList.length > 0 &&
+            providerList.map((provider) => (
+              <div key={provider.name} className="pl-4">
+                <button
+                  onClick={() => signIn(provider.id, { callbackUrl: "/" })}
+                  className="text-blue-700 font-semibold rounded-full border border-blue-700 px-5 py-1.5 hover:bg-blue-50"
+                >
+                  Sign In with {provider.name}
+                </button>
+              </div>
+            ))}
         </div>
       </header>
 
@@ -92,10 +96,19 @@ const Home = ({ providers = {} }) => {
 export default Home;
 
 export async function getServerSideProps() {
-  const providers = await getProviders();
-  return {
-    props: {
-      providers: providers || null,
-    },
-  };
+  try {
+    const providers = await getProviders();
+    return {
+      props: {
+        providers: providers || {},
+      },
+    };
+  } catch (error) {
+    console.error("Error fetching providers:", error);
+    return {
+      props: {
+        providers: {},
+      },
+    };
+  }
 }

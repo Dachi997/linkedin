@@ -18,7 +18,6 @@ export default function Home({ posts, articles }) {
   const { status } = useSession({
     required: true,
     onUnauthenticated() {
-      // The user is not authenticated, handle it here.
       router.push("/home");
     },
   });
@@ -75,16 +74,22 @@ export async function getServerSideProps(context) {
   return {
     props: {
       session,
-      articles: results.articles,
-      posts: posts.map((post) => ({
-        _id: post._id.toString(),
-        input: post.input,
-        photoUrl: post.photoUrl,
-        username: post.username,
-        email: post.email,
-        userImg: post.userImg,
-        createdAt: post.createdAt,
-      })),
+      articles: results.articles || [],
+      posts: posts.map((post) => {
+        const createdAtDate = post.createdAt ? new Date(post.createdAt) : null;
+        return {
+          _id: post._id.toString(),
+          input: post.input,
+          photoUrl: post.photoUrl,
+          username: post.username,
+          email: post.email,
+          userImg: post.userImg,
+          createdAt:
+            createdAtDate && !isNaN(createdAtDate)
+              ? createdAtDate.toISOString()
+              : null,
+        };
+      }),
     },
   };
 }

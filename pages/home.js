@@ -9,7 +9,6 @@ import Head from "next/head";
 import { getProviders, signIn } from "next-auth/react";
 
 const Home = ({ providers = {} }) => {
-  // Defensive check: if providers is null or empty object, don't crash
   const providerList = providers ? Object.values(providers) : [];
 
   return (
@@ -98,6 +97,7 @@ export default Home;
 export async function getServerSideProps() {
   try {
     const providers = await getProviders();
+    console.log("Providers:", providers);
     return {
       props: {
         providers: providers || {},
